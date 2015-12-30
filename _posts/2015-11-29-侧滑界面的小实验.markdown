@@ -33,34 +33,34 @@ categories: Duis
 
 将侧滑边栏视图加在keyWindow上的同时，我还动态将视图所在的控制器和keyWindow绑定在一起，这样可以避免边栏视图的控制器被释放，从而导致的交互事件无法回调。注意使用keyWindow的前提是我们自定义了AppDelegate的window入口，当然在这里并不是很推荐这种方法
 
-``` 
+{% highlight ruby %}
 let keyWindow: UIWindow = UIApplication.sharedApplication().keyWindow;
 keyWindow.addSubview((menuController.view)!)
 objc_setAssociatedObject(keyWindow, kMenuControllerKey, slideMenuController, OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-```
+{% endhighlight %}
 
 在我们产生点击事件进行侧滑的时候，应当移动不在当前可视范围内的边栏视图，移动视图的代码如下：其中maxOpenRatio表示移动的屏幕宽度最大比例。
 
-``` 
+{% highlight ruby %}
 var frame = self.slideController?.view.frame
 frame?.origin.x = self.slideDirection == .Left ? kWidth*(1-maxOpenRatio) : -kWidth*(1-maxOpenRatio)
 
 UIView.animateWithDuration(0.2) { () -> Void in
     self.slideController?.view.frame = frame!
 }
-```
+{% endhighlight %}
 
 如果我们要做的是第一种效果，那么在上面这段代码中获取主视图的frame然后修改x坐标实现动画效果进行位移。在我们移动之后，我们应该在主视图上面添加一个单击手势以便我们点击后还原侧滑效果。当然，这个手势应该在还原动画完成的时候移除掉。因此侧滑的动画代码如下：
 
-``` 
+{% highlight ruby %}
 private func open() {
     isOpen = true
 
-    self.mainController?.view.addGestureRecognizer(self.tap!)
+self.mainController?.view.addGestureRecognizer(self.tap!)
 
     var frame = self.slideController?.view.frame
     frame?.origin.x = self.slideDirection == .Left ? kWidth*(1-maxOpenRatio) : -kWidth*(1-maxOpenRatio)
-
+    
     UIView.animateWithDuration(0.2) { () -> Void in
         self.slideController?.view.frame = frame!
     }
@@ -79,7 +79,7 @@ private func close() {
         self.mainController.view.removeGestureRecognizer(self.tap)
     })
 }
-```
+{% endhighlight %}
 
 使用keyWindow的情况下，已经完成了我需要的效果。但是，这种方式博主并不推荐。在window上面添加视图可能会引发不必要的麻烦甚至一些隐晦的crash，因此我们应该使用tabBarController的view来完成侧滑效果
 
@@ -87,7 +87,7 @@ private func close() {
 
 第二种实现侧滑的方式是直接将侧滑的视图加在当前的主视图上面，并且保证侧滑视图显示在屏幕外
 
-``` 
+{% highlight ruby %}
 func init(mainController: UIViewController!, menuController: UIViewController!) {
     super.init()
     self.mainController = mainController
@@ -96,11 +96,11 @@ func init(mainController: UIViewController!, menuController: UIViewController!) 
     menuController.view?.frame = menuFrame
     mainController.view.addSubview((menuController.view)!)
 }
-```
+{% endhighlight %}
 
 此时，使用上面两种动画效果时。由于侧滑视图已经加在主视图上面了，如果是要保持主视图和菜单栏同时移动的效果，那么我们只需要移动主视图。或者只移动侧滑视图来实现菜单左移的效果
 
-``` 
+{% highlight ruby %}
 func open() {
     var mainFrame = self.menuController?.view.frame 
     var menuFrame = self.menuController?.view.frame
@@ -118,7 +118,7 @@ func open() {
         self.mainController?.view.addGestureRecognizer(self.tap!)
     })
 }
-```
+{% endhighlight %}
 
 在移动动画发生完成之后，我们给主视图加上一个点击手势方便再次点击的时候还原位移。在还原的时候我们也应该从主视图上面移除这个点击事件——除非你想发生一些有趣的bug。写完这段移动代码，效果如下：
 
@@ -146,13 +146,13 @@ iOS的事件分发是个有趣的机制，在之前我曾经写过一篇文章�
   
   博主使用的是第二种方式，障眼法。在iOS7之后UIView里面有一个方法用来返回当前显示的内容状态
   
-  ``` 
+{% highlight ruby %}
   public func snapshotViewAfterScreenUpdates(afterUpdates: Bool) -> UIView
-  ```
+{% endhighlight %}
   
   在动画开始前，我们通过这个方法获取主视图当前的状态截图，并且加入到当前视图上，和侧滑视图进行移动。并且将单击还原手势加在这个截图的view上，也可以避免另外的事件点击bug
   
-  ``` 
+{% highlight ruby %} 
     var menuFrame: CGRect = (kMenuController?.view.frame)!
     var mainFrame: CGRect = (kMainController?.view.frame)!
     snapView = (kMainController?.view.snapshotViewAfterScreenUpdates(false))!
@@ -169,11 +169,11 @@ iOS的事件分发是个有趣的机制，在之前我曾经写过一篇文章�
       if finished == true {
         self.snapView?.addGestureRecognizer(self.tap!) }
     })
-  ```
+  {% endhighlight %}
 
 同样的，在我们关闭侧栏视图的动画结束时，也应该把这个截图的view从主视图上移除
 
-``` 
+{% highlight ruby %}
     var menuFrame: CGRect = (kMenuController?.view.frame)!
     var mainFrame: CGRect = (kMainController?.view.frame)!
     mainFrame.origin.x = 0
@@ -189,13 +189,13 @@ iOS的事件分发是个有趣的机制，在之前我曾经写过一篇文章�
       if finished {
           self.snapView?.removeFromSuperview() }
     })
-```
+{% endhighlight %}
 
 #### 其他
 
 实现侧滑功能存在着包括在内的循环引用的风险，为了避免这些风险，我们可以将管理侧滑业务的功能封装出来成为一个单例类，并且使用全局/静态的对象指针来指向主视图控制器跟侧栏视图控制器。
 
-``` 
+{% highlight ruby %}
 private static let let_sharedManager: LXDSlideManager = LXDSlideManager()
 class func sharedManager() -> LXDSlideManager {
     return let_sharedManager
@@ -204,17 +204,18 @@ class func sharedManager() -> LXDSlideManager {
 private override init() {
     super.init()
 }
-```
+{% endhighlight %}
 
 在swift中使用单例的时候，我们需要将构造器私有化，避免对象被创建。另外，我们还可以用不同的枚举来表示不同的策划效果
 
-``` 
+{% highlight ruby %}
 public enum LXDSlideMenuType: Int {
 case BothMove           //主界面跟侧滑界面共同移动
 case MenuMove          //只移动侧滑菜单界面
 }
-```
+{% endhighlight %}
 
 苦逼的博主从上周开始，不得不踏入swift的深坑之中，边学swift边进行项目开发。这段时间使用swift一来，给我的感觉是swift相当的简洁，代码量更少。当然了，灵活性比不得Objective-C。这是一门值得我们去学习挖掘潜力的语言。
 
 本文demo：[两种语言的demo](https://github.com/JustKeepRunning/LXDSlideMenu)
+
