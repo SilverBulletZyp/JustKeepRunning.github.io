@@ -37,10 +37,12 @@ KVO的使用非常简单，使用KVO的要求是对象必须能支持kvc机制�
 
 简要的来说，在我们对某个对象完成监听的注册后，编译器会修改监听对象（上文中的tableView）的isa指针，让这个指针指向一个新生成的中间类。从某个意义上来说，这是一场骗局。
 
-	typedef struct objc_class *Class;
-	typedef struct objc_object  {
-		Class isa;
-	} *id;
+{% highlight ruby %}
+typedef struct objc_class *Class;
+typedef struct objc_object  {
+	Class isa;
+} *id;
+{% endhighlight %}
 
 这里要说明的是isa这个指针，isa是一个Class类型的指针，用来指向类的类型，我们可以通过object_getClass方法来获取这个值(*正常来说，class方法内部的实现就是获取这个isa指针，但是在kvo中苹果对监听对象的这个方法进行了重写。之前这里描述有误，说成是指向父类，多谢[夏都](http://www.jianshu.com/users/1498e495a4b1/timeline)为我纠正*)。
 
@@ -52,34 +54,40 @@ KVO的使用非常简单，使用KVO的要求是对象必须能支持kvc机制�
 
 根据苹果的说法，在对象完成监听注册后，修改了被监听对象的某些属性，并且改变了isa指针，那么我们可以在监听前后输出被监听对象的相关属性来进一步探索kvo的原理。为了保证能够得到对象的真实类型，我使用了object_getClass方法（class方法本质上是调用这个函数），这个方法在runtime.h头文件中
 
-	NSLog(@"address: %p", self.tableView);
-	NSLog(@"class method: %@", self.tableView.class);
-	NSLog(@"description method: %@", self.tableView);
-	NSLog(@"use runtime to get class: %@", object_getClass(self.tableView));
-	[self.tableView addObserver: self forKeyPath: @"contentOffset" options: NSKeyValueObservingOptionNew context: nil];
-	NSLog(@"===================================================");
-	NSLog(@"address: %p", self.tableView);
-	NSLog(@"class method: %@", self.tableView.class);
-	NSLog(@"description method: %@", self.tableView);
-	NSLog(@"use runtime to get class %@", object_getClass(self.tableView));
+{% highlight ruby %}
+NSLog(@"address: %p", self.tableView);
+NSLog(@"class method: %@", self.tableView.class);
+NSLog(@"description method: %@", self.tableView);
+NSLog(@"use runtime to get class: %@", object_getClass(self.tableView));
+[self.tableView addObserver: self forKeyPath: @"contentOffset" options: NSKeyValueObservingOptionNew context: nil];
+NSLog(@"===================================================");
+NSLog(@"address: %p", self.tableView);
+NSLog(@"class method: %@", self.tableView.class);
+NSLog(@"description method: %@", self.tableView);
+NSLog(@"use runtime to get class %@", object_getClass(self.tableView));
+{% endhighlight %}
 
 在看官们运行这段代码之前，可以先思考一下上面的代码会输出什么。
 
-	address: 0x7f927a81d200
-	class method: UITableView
-	description method: <UITableView: 0x7f927a81d200; frame = (0 0; 320 568); clipsToBounds = YES; autoresize = W+H; gestureRecognizers = <NSArray: 0x7f927971f9a0>; layer = <CALayer: 0x7f9279706f50>; contentOffset: {0, 0}; contentSize: {600, 0}>
-	use runtime to get class: UITableView
-	===================================================
-	address: 0x7f927a81d200
-	class method: UITableView
-	description method: <UITableView: 0x7f927a81d200; frame = (0 0; 320 568); clipsToBounds = YES; autoresize = W+H; gestureRecognizers = <NSArray: 0x7f927971f9a0>; layer = <CALayer: 0x7f9279706f50>; contentOffset: {0, 0}; contentSize: {600, 0}>
-	use runtime to get class NSKVONotifying_UITableView
+{% highlight ruby %}
+address: 0x7f927a81d200
+class method: UITableView
+description method: <UITableView: 0x7f927a81d200; frame = (0 0; 320 568); clipsToBounds = YES; autoresize = W+H; gestureRecognizers = <NSArray: 0x7f927971f9a0>; layer = <CALayer: 0x7f9279706f50>; contentOffset: {0, 0}; contentSize: {600, 0}>
+use runtime to get class: UITableView
+===================================================
+address: 0x7f927a81d200
+class method: UITableView
+description method: <UITableView: 0x7f927a81d200; frame = (0 0; 320 568); clipsToBounds = YES; autoresize = W+H; gestureRecognizers = <NSArray: 0x7f927971f9a0>; layer = <CALayer: 0x7f9279706f50>; contentOffset: {0, 0}; contentSize: {600, 0}>
+use runtime to get class NSKVONotifying_UITableView
+{% endhighlight %}
 
 除了通过object_getClass获取的类型之外，其他的输出没有任何变化。`class`方法跟`description`方法可以重写实现上面的效果，但是为什么连地址都是一样的。
 
 这里可以通过一句小代码来说明一下：
 
-	NSLog(@"%@, %@", self.class, super.class);
+{% highlight ruby %}
+NSLog(@"%@, %@", self.class, super.class);
+{% endhighlight %}
 
 上面这段代码不管你怎么输出，两个结果都是一样的。这是由于super本质上指向的是父类内存。这话说起来有点绕口，但是我们可以通过对象内存图来表示：
 
@@ -93,89 +101,97 @@ KVO的使用非常简单，使用KVO的要求是对象必须能支持kvc机制�
 
 在创建新类之前，我们应该学习苹果的做法，判断当前是否存在这个类，如果不存在我们再进行创建，并且重新实现这个新类的class方法来掩盖具体实现。基于这些原则，我们用下面的方法来获取新类
 
-	- (Class)createKVOClassWithOriginalClassName: (NSString *)className {
-		NSString * kvoClassName = [kLXDkvoClassPrefix stringByAppendingString: className];
-		Class observedClass = NSClassFromString(kvoClassName);
-		if (observedClass) { return observedClass; }
+{% highlight ruby %}
+- (Class)createKVOClassWithOriginalClassName: (NSString *)className {
+	NSString * kvoClassName = [kLXDkvoClassPrefix stringByAppendingString: className];
+	Class observedClass = NSClassFromString(kvoClassName);
+	if (observedClass) { return observedClass; }
 
-		//创建新类，并且添加LXDObserver_为类名新前缀
-		Class originalClass = object_getClass(self);
-		Class kvoClass = objc_allocateClassPair(originalClass, kvoClassName.UTF8String, 0);
+	//创建新类，并且添加LXDObserver_为类名新前缀
+	Class originalClass = object_getClass(self);
+	Class kvoClass = objc_allocateClassPair(originalClass, kvoClassName.UTF8String, 0);
 
-		//获取监听对象的class方法实现代码，然后替换新建类的class实现
-		Method classMethod = class_getInstanceMethod(originalClass, @selector(class));
-    	const char * types = method_getTypeEncoding(classMethod);
-		class_addMethod(kvoClass, @selector(class), (IMP)kvo_Class, types);
-		objc_registerClassPair(kvoClass);
-		return kvoClass;
-	}
+	//获取监听对象的class方法实现代码，然后替换新建类的class实现
+	Method classMethod = class_getInstanceMethod(originalClass, @selector(class));
+    const char * types = method_getTypeEncoding(classMethod);
+	class_addMethod(kvoClass, @selector(class), (IMP)kvo_Class, types);
+	objc_registerClassPair(kvoClass);
+	return kvoClass;
+}
+{% endhighlight %}
 
 另外，在判断是否需要中间类来完成监听的注册前，我们还要判断监听的属性的有效性。通过获取变量的setter方法名（将首字母大写并加上前缀set），以此来获取setter实现，如果不存在实现代码，则抛出异常使程序崩溃。
 
-	SEL setterSelector = NSSelectorFromString(setterForGetter(key));
-	Method setterMethod = class_getInstanceMethod([self class], setterSelector);
-	if (!setterMethod) {
-		@throw [NSException exceptionWithName: NSInvalidArgumentException reason: [NSString stringWithFormat: @"unrecognized selector sent to instance %p", self] userInfo: nil];
-    	return;
-	}
-	Class observedClass = object_getClass(self);
-	NSString * className = NSStringFromClass(observedClass);
+{% highlight ruby %}
+SEL setterSelector = NSSelectorFromString(setterForGetter(key));
+Method setterMethod = class_getInstanceMethod([self class], setterSelector);
+if (!setterMethod) {
+	@throw [NSException exceptionWithName: NSInvalidArgumentException reason: [NSString stringWithFormat: @"unrecognized selector sent to instance %p", self] userInfo: nil];
+    return;
+}
+Class observedClass = object_getClass(self);
+NSString * className = NSStringFromClass(observedClass);
 
-	//如果被监听者没有LXDObserver_，那么判断是否需要创建新类
-	if (![className hasPrefix: kLXDkvoClassPrefix]) {
-		observedClass = [self createKVOClassWithOriginalClassName: className];
-    	object_setClass(self, observedClass);
-	}
-	//重新实现setter方法，使其完成
-	const char * types = method_getTypeEncoding(setterMethod);
+//如果被监听者没有LXDObserver_，那么判断是否需要创建新类
+if (![className hasPrefix: kLXDkvoClassPrefix]) {
+	observedClass = [self createKVOClassWithOriginalClassName: className];
+	object_setClass(self, observedClass);
+}
+//重新实现setter方法，使其完成
+const char * types = method_getTypeEncoding(setterMethod);
 	class_addMethod(observedClass, setterSelector, (IMP)KVO_setter, types);
+{% endhighlight %}
 
 在重新实现setter方法的时候，有两个重要的方法：`willChangeValueForKey`和`didChangeValueForKey`，分别在赋值前后进行调用。此外，还要遍历所有的回调监听者，然后通知这些监听者：
 
-	static void KVO_setter(id self, SEL _cmd, id newValue) {
-		NSString * setterName = NSStringFromSelector(_cmd);
-    	NSString * getterName = getterForSetter(setterName);
-		if (!getterName) {
-			@throw [NSException exceptionWithName: NSInvalidArgumentException reason: [NSString stringWithFormat: @"unrecognized selector sent to instance %p", self] userInfo: nil];
-        	return;
-    	}
+{% highlight ruby %}
+static void KVO_setter(id self, SEL _cmd, id newValue) {
+	NSString * setterName = NSStringFromSelector(_cmd);
+	NSString * getterName = getterForSetter(setterName);
+	if (!getterName) {
+		@throw [NSException exceptionWithName: NSInvalidArgumentException reason: [NSString stringWithFormat: @"unrecognized selector sent to instance %p", self] userInfo: nil];
+		return;
+	}
 
-    	id oldValue = [self valueForKey: getterName];
-		struct objc_super superClass = {
+	id oldValue = [self valueForKey: getterName];
+	struct objc_super superClass = {
         	.receiver = self,
         	.super_class = class_getSuperclass(object_getClass(self))
-    	};
+	};
 
-		[self willChangeValueForKey: getterName];
-		void (*objc_msgSendSuperKVO)(void *, SEL, id) = (void *)objc_msgSendSuper;
-		objc_msgSendSuperKVO(&superClass, _cmd, newValue);
-		[self didChangeValueForKey: getterName];
+	[self willChangeValueForKey: getterName];
+	void (*objc_msgSendSuperKVO)(void *, SEL, id) = (void *)objc_msgSendSuper;
+	objc_msgSendSuperKVO(&superClass, _cmd, newValue);
+	[self didChangeValueForKey: getterName];
 
-		//获取所有监听回调对象进行回调
-		NSMutableArray * observers = objc_getAssociatedObject(self, (__bridge const void *)kLXDkvoAssiociateObserver);
-		for (LXD_ObserverInfo * info in observers) {
-        if ([info.key isEqualToString: getterName]) {        
-            dispatch_async(dispatch_queue_create(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-				info.handler(self, getterName, oldValue, newValue); });
-			}
-    	}
-	}
+	//获取所有监听回调对象进行回调
+	NSMutableArray * observers = objc_getAssociatedObject(self, (__bridge const void *)kLXDkvoAssiociateObserver);
+	for (LXD_ObserverInfo * info in observers) {
+       if ([info.key isEqualToString: getterName]) {        
+           dispatch_async(dispatch_queue_create(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+			info.handler(self, getterName, oldValue, newValue); });
+		}
+    }
+}
+{% endhighlight %}
 
 所有的监听者通过动态绑定的方式将其存储起来，但这样也会产生强引用，所以我们还需要提供释放监听的方法：
 
-	- (void)LXD_removeObserver:(NSObject *)object forKey:(NSString *)key {
-		NSMutableArray * observers = objc_getAssociatedObject(self, (__bridge void *)kLXDkvoAssiociateObserver);
+{% highlight ruby %}
+- (void)LXD_removeObserver:(NSObject *)object forKey:(NSString *)key {
+	NSMutableArray * observers = objc_getAssociatedObject(self, (__bridge void *)kLXDkvoAssiociateObserver);
 
-		LXD_ObserverInfo * observerRemoved = nil;
-		for (LXD_ObserverInfo * observerInfo in observers) {
+	LXD_ObserverInfo * observerRemoved = nil;
+	for (LXD_ObserverInfo * observerInfo in observers) {
 
-			if (observerInfo.observer == object && [observerInfo.key isEqualToString: key]) {
-				observerRemoved = observerInfo;
-				break;
-			}
-    	}
-    	[observers removeObject: observerRemoved];
-	}
+		if (observerInfo.observer == object && [observerInfo.key isEqualToString: key]) {
+			observerRemoved = observerInfo;
+			break;
+		}
+    }
+    [observers removeObject: observerRemoved];
+}
+{% endhighlight %}
 
 虽然上面已经粗略的实现了kvo，并且我们还能自定义回调方式。使用target-action或者block的方式进行回调会比单一的系统回调要全面的多。但kvo真正的实现并没有这么简单，上述代码目前只能实现对象类型的监听，基本类型无法监听，况且还有keyPath可以监听对象的成员对象的属性这种更强大的功能。
 
