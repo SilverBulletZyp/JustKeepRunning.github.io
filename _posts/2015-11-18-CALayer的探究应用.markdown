@@ -272,4 +272,3 @@ CGFloat contactY = (offsetY - _origin.y) * (_progress == 0 ?: _strokeEnd / _prog
 
 博主主页: [sindrilin的小巢](http://sindrilin.com)
 
-](https://github.com/JustKeepRunning)

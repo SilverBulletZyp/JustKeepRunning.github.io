@@ -185,6 +185,7 @@ Contents -> Developer -> Platforms -> iPhoneOS.platform -> Developer -> Library 
 
 
 
-简书blog：http://www.jianshu.com/users/0cf7d455eb9e/latest_articles
+[简书blog](http://www.jianshu.com/users/0cf7d455eb9e/latest_articles)
 
-github：https://github.com/JustKeepRunning
+[github](https://github.com/JustKeepRunning)
+
