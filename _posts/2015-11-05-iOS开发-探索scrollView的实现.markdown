@@ -5,11 +5,11 @@ date:   2015.11.05 17:31:00
 categories: iOS-Dev
 ---
 
-前言
+###前言
 
 UIScrollView滚动视图，绝对算的上是iOS开发中最重要的控件，用来展示多于一个屏幕的内容，可以滚动显示超过屏幕外的内容的特性使其产生了更多强大的子类：UITableView、UICollectionView、UITextView等等。尽管功能如此强大，但是scrollView本质上只是一个UIView的黑魔法，本文将剖析UIScrollView这种强大特性的实现过程
 
-图层渲染
+###图层渲染
 
 这里不得不提到UIView和CALayer的关系。在UIKit框架中，UIView是所有界面元素的基础，我们页面上可见的控件几乎都是从这个类派生出来的。之所以说几乎意味着我们也可以不通过UIView及其子类的途径来展示一些页面效果，比如有渐变效果的进度条——通过CALayer直接完成。关于两者的具体区别以及关系，我们不在这里详说，只需要知道每一个UIView管理着一个CALayer，所有我们看到的内容都是由后者进行渲染的。
 
@@ -67,7 +67,7 @@ subview.backgroundColor = [UIColor blueColor];
 
 可以看到，scrollView本质上不过是一个默认遮盖范围外子视图的UIView罢了。那么，UIView到底使用了什么黑魔法来实现滚动视图呢？
 
-contentOffset
+###contentOffset
 
 用过scrollView的开发者对这个属性都不陌生，contentOffset决定了当前scrollView显示内容的范围，即是当前scrollView的左上角的显示位置坐标。通过图片轮播控件来探究这个属性的实现
 
@@ -97,7 +97,7 @@ contentOffset
   
   }
   
-  contentSize
+###	contentSize
   
   如果说contentOffset决定了scrollView的窗口，那么contentSize决定了这个窗口背后的风光。
   
@@ -111,7 +111,7 @@ contentOffset
   
   ​
 
-contentInset
+###contentInset
 
 contentInset是一个相当有用的属性，我在做的一个毛玻璃效果导航栏上下拉效果时就通过这个属性实现。这个属性可以在某种意义上增加或者减少我们的滚动尺寸范围：
 
