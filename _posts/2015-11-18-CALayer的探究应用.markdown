@@ -5,8 +5,6 @@ date:   2015.11.18 18:20:47
 categories: iOS-Dev
 ---
 
-### 序言
-
 先上本文讲述的demo效果图
 
 <span><img src="/images/CALayer的探究应用/1.gif" width="800"></span>

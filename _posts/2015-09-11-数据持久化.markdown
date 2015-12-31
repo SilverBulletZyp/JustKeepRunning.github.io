@@ -6,8 +6,6 @@ categories: iOS-Dev
 ---
 
 
-### 序言
-
 在程序开发中，数据层永远是程序的核心结构之一。我们将现实事物进行抽象，使之变成一个个数据。对这些数据的加工处理是代码中能体现技术水平的一大模块，比如数据的请求、解析、缓存、持久化等等。适当的对数据进行持久化存储可以实现应用的离线功能，以此提高用户体验。在iOS开发中，苹果提供了四种持久化方案供我们选择。这些方案分别包括属性列表(plist)、数据归档(NSKeyedValueArchiver/NSUserDefaults)、数据库(sqlite)和coreData等，它们的区别如下
 <span class="image featured"><img src="/images/iOS开发-数据持久化/pic01.png" alt=""></span>
 

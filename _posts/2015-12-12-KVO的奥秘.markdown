@@ -5,8 +5,6 @@ date:   2015.12.12 23:41:00
 categories: iOS-Dev
 ---
 
-###序言
-
 在iOS开发中，苹果提供了许多机制给我们进行回调。`KVO(key-value-observing)`是一种十分有趣的回调机制，在某个对象注册监听者后，在被监听的对象发生改变时，对象会发送一个通知给监听者，以便监听者执行回调操作。最常见的KVO运用是监听`scrollView`的`contentOffset`属性，来完成用户滚动时动态改变某些控件的属性实现效果，包括渐变导航栏、下拉刷新控件等效果。
 
 <span><img src="/images/KVO的奥秘/1.gif" width="800"></span>
