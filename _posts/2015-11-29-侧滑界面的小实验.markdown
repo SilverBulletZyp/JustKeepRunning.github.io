@@ -2,7 +2,7 @@
 layout: post
 title:  "侧滑界面的小实验"
 date:   2015.11.29 14:48:00
-categories: Duis
+categories: iOS-Dev
 ---
 
 ## 前言

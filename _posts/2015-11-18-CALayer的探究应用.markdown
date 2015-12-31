@@ -2,7 +2,7 @@
 layout: post
 title:  "CALayer的探究应用"
 date:   2015.11.18 18:20:47
-categories: Duis
+categories: iOS-Dev
 ---
 
 ## 前言

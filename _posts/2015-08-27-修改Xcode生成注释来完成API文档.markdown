@@ -2,7 +2,7 @@
 layout: post
 title:  "修改Xcode生成注释来完成API文档"
 date:   2015-08-27 14:36:23
-categories: Duis
+categories: note
 ---
 
 ## 写这篇博客的原因

@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  "iOS开发-探索scrollView的实现"
+title:  "探索scrollView的实现"
 date:   2015.11.05 17:31:00
-categories: Duis
+categories: iOS-Dev
 ---
 
 前言
@@ -130,3 +130,4 @@ contentInset是一个相当有用的属性，我在做的一个毛玻璃效果�
 demo链接：[实现scrollView](https://github.com/JustKeepRunning/LXDScrollView)
 
 个人blog: [sindrilin.com](http://www.sindrilin.com)
+

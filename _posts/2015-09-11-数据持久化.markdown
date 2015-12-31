@@ -1,7 +1,8 @@
 ---
 layout: post
-title:  "iOS开发-数据持久化"
+title:  "数据持久化"
 date:   2015-09-11 14:36:23
+categories: iOS-Dev
 ---
 
 <span class="image featured"><img src="/images/iOS开发-数据持久化/pic01.png" alt=""></span>
@@ -390,3 +391,4 @@ coreData是iOS5之后苹果推出的数据持久化框架，其提供了ORM的�
 想要对coreData有更深入的了解可以购买这本Core Data应用开发实践指南，里面详细讲述了coreData的各种使用技巧。
 
 对于我们开发者而言，使用适当的持久化方案可以帮助我们获得更高的开发效率。更快的数据加载速度可以显著提高应用的用户体验感。
+

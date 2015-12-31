@@ -2,7 +2,7 @@
 layout: post
 title:  "定制自己的瀑布流"
 date:   2015-09-18 18:20:13
-categories: Duis
+categories: iOS-Dev
 ---
 
 ## 前言
@@ -408,3 +408,4 @@ return !CGRectEqualToRect(self.collectionView.bounds, newBounds);
 *finalLayoutAttributesForDisappearingDecorationElementOfKind:atIndexPath:*
 
 关于这些方法的使用可以学习[这篇文章](http://www.cocoachina.com/industry/20140725/9247.html)。
+

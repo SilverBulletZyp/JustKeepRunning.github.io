@@ -2,7 +2,7 @@
 layout: post
 title:  "KVO的奥秘"
 date:   2015.12.12 23:41:00
-categories: Duis
+categories: iOS-Dev
 ---
 
 ##前言

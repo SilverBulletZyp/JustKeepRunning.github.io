@@ -1,8 +1,8 @@
 ---
 layout: post
-title:  "iOS开发-定制多样式二维码"
+title:  "定制多样式二维码"
 date:   2015-10-26 20:30:37
-categories: Duis
+categories: iOS-Dev
 ---
 
 <span><img src="/images/定制多样式二维码/pic01.jpg"><span>
@@ -420,3 +420,4 @@ void ProviderReleaseData(void * info, const void * data, size_t size) {
 	return [self imageOfQRFromURL: networkAddress codeSize: 100.0f red: 0 green: 0 blue: 0 insertImage: nil roundRadius: 0.f];
 }
 ```
+
