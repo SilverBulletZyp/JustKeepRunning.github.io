@@ -3,7 +3,7 @@ layout: page
 title: About me 
 ---
 
-Hi, 我是林欣达，这是我的个人技术博客，正在努力成为合格的攻城狮。<a href="https://github.com/JustKeepRunning">我的github</a></br>
+Hi, 我是林欣达，这是我的个人技术博客，正在努力成为合格的攻城狮。</br><a href="https://github.com/JustKeepRunning">我的github</a></br>
 
 </br>
 <h1>友情链接</h1>
