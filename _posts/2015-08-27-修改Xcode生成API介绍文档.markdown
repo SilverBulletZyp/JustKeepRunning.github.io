@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "修改Xcode生成注释来完成API文档"
+title:  "修改Xcode生成API介绍文档"
 date:   2015-08-27 14:36:23
 categories: note
 ---
